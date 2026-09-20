@@ -1,8 +1,9 @@
 # Peer-name investigation
 
 QC35 II peer aliases remain local. No supported write path was found in Bose
-Connect 25.2's device-management packet factory. That is evidence about the app,
-not proof that the firmware has no undocumented setter.
+Connect 25.2's device-management packet factory. A single authorized SET_GET
+probe of peer Info on firmware 4.8.1 returned error 5 (unsupported operator).
+This rules out that tested path, not every possible undocumented setter.
 
 ## Sources
 
@@ -66,11 +67,25 @@ diagnostic output. No writable-function or operator mask was returned.
 The two extended-info trailing bytes remain unidentified; this response does
 not contain the peer's UTF-8 name.
 
-These observations came from read operations. No alias-write capability or
+The observations above came from read operations. No alias-write capability or
 power-cycle persistence has been established. Use `--inspect-protocol` to repeat
 the bounded read-only diagnostic; it omits peer names, addresses, and serials.
 
-An undocumented peer-info SET_GET is a separate experiment, not a product
-feature. It needs explicit authorization for the target entry, one attempt with
-its existing payload, and subsequent read-back. Do not sweep opcodes or probe
-firmware/debug writes.
+## Authorized peer-info write probe
+
+One SET_GET was sent to the current controlling Mac's entry, with the entire
+freshly read 17-byte Info payload unchanged: `04 05 02 11` followed by that
+payload. The headphones rejected function `4.5` with ERROR payload `05`.
+
+Subsequent GETs verified:
+
+- The set of paired addresses was unchanged (two entries).
+- The full current-host Info payload was byte-for-byte unchanged.
+- Its name was unchanged, and connected/local flags remained set.
+
+Earlier connection attempts timed out before any write. A lingering normal app
+process was terminated before the successful control-channel connection. Only
+one SET_GET was transmitted; the attempt marker was consumed before sending,
+and the temporary write-probe code was removed afterward. The normal diagnostic
+remains read-only. Further undocumented writes require separate authorization;
+do not sweep opcodes or probe firmware/debug writes.
