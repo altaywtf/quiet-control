@@ -1,9 +1,20 @@
+<img src="Resources/AppIcon.png" width="96" alt="Quiet Control icon">
+
 # Quiet Control
 
-A local macOS app for Bose QC35 II saved Bluetooth devices. SwiftUI window and
-menu-bar entry, with IOBluetooth RFCOMM transport. Requires macOS 14 or newer.
+A native macOS app for managing the Bluetooth devices remembered by Bose QC35 II
+headphones. SwiftUI window and menu-bar entry, with IOBluetooth RFCOMM transport.
+No cloud services, third-party packages, or telemetry.
+
+![Saved devices in Quiet Control](docs/screenshots/saved-devices.png)
+
+## Build and run
+
+Requires macOS 14 or newer and a Swift 6 toolchain (Xcode or Command Line Tools).
 
 ```sh
+git clone https://github.com/altaywtf/quiet-control.git
+cd quiet-control
 swift test
 sh scripts/build-app.sh
 open 'dist/Quiet Control.app'
@@ -20,6 +31,13 @@ headphones again.
 - Rename the headphones, with the headset's 31-byte name limit.
 - Set local aliases for saved devices through the row menu.
 
+Hardware reads have been tested on a QC35 II. Connect, disconnect, forget, and
+headphone rename controls still need hardware verification.
+
+![Editing a local device alias](docs/screenshots/local-alias.png)
+
+Screenshots use the built-in demo with sample devices.
+
 The current controlling Mac cannot be disconnected or forgotten from this app.
 Aliases stay in this Mac's app preferences, keyed by Bluetooth address. They do
 not change names stored or announced by the headphones. Renaming the headphones
@@ -34,11 +52,11 @@ refreshes on demand, rather than interpreting undocumented unsolicited events.
 
 ## Development
 
-`QuietCore` owns framing, payload validation, and command construction.
-`BluetoothSession` discovers the `SPP Dev` service and serializes requests.
-`HeadphoneModel` owns read-back and UI state. There are no package dependencies,
-cloud services, or runtime telemetry. The build script signs the local bundle
-ad hoc; this is not a notarized distribution build.
+[QuietCore](Sources/QuietCore/Protocol.swift) handles protocol parsing;
+[BluetoothSession](Sources/QuietControl/BluetoothSession.swift) handles RFCOMM;
+[HeadphoneModel](Sources/QuietControl/HeadphoneModel.swift) owns UI state and
+read-back. The [build script](scripts/build-app.sh) signs the local bundle
+ad hoc. It is not notarized.
 
 For a hardware-free UI preview:
 
@@ -62,7 +80,7 @@ GET commands and the app's read-only `GetAllFunctions` discovery action are sent
 no pairing or name changes are attempted.
 
 [Peer-name protocol findings](docs/peer-name-protocol.md) distinguish app-derived
-packet definitions from read-only hardware observations.
+packet definitions, hardware reads, and the rejected peer-name write probe.
 
 ## Protocol sources
 
@@ -73,7 +91,14 @@ packet definitions from read-only hardware observations.
 - [bose-macos-utility](https://github.com/lukasz-zet/bose-macos-utility/blob/a4c919f0cfce739f7408d1def190171218df0a6f/bose-macos-utility/bose-macos-utility/AppDelegate.swift)
   demonstrates discovering the macOS `SPP Dev` RFCOMM service.
 
-Unit tests cover fragmented/coalesced frames, malformed lists and details,
-address order, unknown status, UTF-8 byte limits, and invalid name read-back.
-Hardware read support has been exercised on a QC35 II. Mutation commands still
-need hardware verification; do not infer it from the read test.
+Run `swift test` for the [protocol and model tests](Tests/QuietCoreTests).
+
+## License and acknowledgements
+
+[MIT](LICENSE) © 2026 Altay Aydemir. This is an independent project, unaffiliated
+with Bose.
+
+The protocol references above retain their own licenses and are not bundled
+dependencies. The [research notes](docs/peer-name-protocol.md#sources) also credit iclemens/bose,
+aaronsb/bosectl, and the Bose Connect packet definitions used to investigate peer
+names. No APK or decompiled source is distributed here.

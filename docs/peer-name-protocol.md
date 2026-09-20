@@ -83,9 +83,6 @@ Subsequent GETs verified:
 - The full current-host Info payload was byte-for-byte unchanged.
 - Its name was unchanged, and connected/local flags remained set.
 
-Earlier connection attempts timed out before any write. A lingering normal app
-process was terminated before the successful control-channel connection. Only
-one SET_GET was transmitted; the attempt marker was consumed before sending,
-and the temporary write-probe code was removed afterward. The normal diagnostic
-remains read-only. Further undocumented writes require separate authorization;
-do not sweep opcodes or probe firmware/debug writes.
+The write probe is not included in the app. The normal diagnostic remains
+read-only. Further undocumented writes require separate authorization; do not
+sweep opcodes or probe firmware/debug writes.

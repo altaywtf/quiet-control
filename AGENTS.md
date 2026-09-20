@@ -12,5 +12,5 @@ Do not log device addresses or names to committed artifacts. Keep local aliases
 distinct from headset-stored names. Do not claim mutation support is hardware
 verified until the corresponding action and read-back have been exercised.
 
-No public remote or distribution release is configured. Protocol references and
-build instructions are in README.md.
+See [README.md](README.md) for build instructions, protocol sources, and
+hardware verification limits.

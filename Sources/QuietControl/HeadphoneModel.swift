@@ -33,7 +33,7 @@ final class HeadphoneModel: ObservableObject {
     init(demo: Bool = false, defaults: UserDefaults = .standard) {
         self.demo = demo
         self.defaults = defaults
-        aliases = defaults.dictionary(forKey: "deviceAliases") as? [String: String] ?? [:]
+        aliases = demo ? [:] : (defaults.dictionary(forKey: "deviceAliases") as? [String: String] ?? [:])
         session.onClose = { [weak self] in
             self?.connected = false
             self?.devices = []
