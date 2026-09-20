@@ -1,6 +1,7 @@
 #!/bin/sh
 set -eu
 cd "$(dirname "$0")/.."
+sh scripts/doctor.sh
 swift build -c release
 app='dist/Quiet Control.app'
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"

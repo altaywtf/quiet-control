@@ -1,0 +1,22 @@
+name: Verify
+on:
+  push:
+    branches: [main]
+    paths: ['Sources/**', 'Tests/**', 'Resources/**', 'scripts/**', 'Package.swift', 'Info.plist', '.github/**']
+  pull_request:
+    paths: ['Sources/**', 'Tests/**', 'Resources/**', 'scripts/**', 'Package.swift', 'Info.plist', '.github/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  verify:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - run: sh scripts/verify.sh

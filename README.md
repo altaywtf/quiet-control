@@ -24,8 +24,7 @@ Requires macOS 14+ and Swift 6 (Xcode or Command Line Tools).
 ```sh
 git clone https://github.com/altaywtf/quiet-control.git
 cd quiet-control
-swift test
-sh scripts/build-app.sh
+sh scripts/verify.sh
 open 'dist/Quiet Control.app'
 ```
 
@@ -62,6 +61,5 @@ See the [findings and packet definitions](docs/peer-name-protocol.md).
 - [Research sources](docs/peer-name-protocol.md#sources): iclemens/bose,
   aaronsb/bosectl, and Bose Connect packet definitions. No APK or decompiled
   source is included.
-- [Icon](Resources/README.md): generated with imagegen, inspired by uinaf.
 
 [MIT licensed](LICENSE). Unaffiliated with Bose.

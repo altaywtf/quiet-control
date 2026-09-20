@@ -1,9 +1,7 @@
 # App icon
 
-`AppIcon.png` was generated with the built-in imagegen tool. Its palette takes
-cues from the [uinaf design system](https://github.com/uinaf/design): near-black,
-off-white, and phosphor lime. The build script creates the macOS icon sizes and
-ICNS from this source image.
+`AppIcon.png` is the generated source image. The build script creates the macOS
+icon sizes and ICNS from it.
 
 ## Generation prompt
 
