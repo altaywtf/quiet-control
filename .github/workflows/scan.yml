@@ -1,0 +1,14 @@
+name: Scan
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  scan:
+    uses: uinaf/.github/.github/workflows/scan.yml@ddd5682967e3d5725bd2a551ce951c0bc055efba

@@ -2,9 +2,7 @@ name: Verify
 on:
   push:
     branches: [main]
-    paths: ['Sources/**', 'Tests/**', 'Resources/**', 'scripts/**', 'Package.swift', 'Info.plist', '.github/**']
   pull_request:
-    paths: ['Sources/**', 'Tests/**', 'Resources/**', 'scripts/**', 'Package.swift', 'Info.plist', '.github/**']
   workflow_dispatch:
 permissions:
   contents: read
