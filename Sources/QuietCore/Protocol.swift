@@ -7,6 +7,38 @@ public enum BoseError: LocalizedError, Equatable {
     }
 }
 
+public struct DeviceRejection: LocalizedError, Equatable, Sendable {
+    public let group: UInt8
+    public let command: UInt8
+    public let payload: [UInt8]
+
+    public var errorDescription: String? {
+        let code = payload.map { String(format: "%02X", $0) }.joined(separator: " ")
+        return "The headphones rejected command \(group).\(command) (error \(code.isEmpty ? "empty" : code))."
+    }
+}
+
+public struct ResponseExpectation {
+    private let request: Frame
+    private let operation: UInt8
+    private let payloadMatches: ([UInt8]) -> Bool
+
+    public init(request: Frame, operation: UInt8, payloadMatches: @escaping ([UInt8]) -> Bool) {
+        self.request = request
+        self.operation = operation
+        self.payloadMatches = payloadMatches
+    }
+
+    public func result(for frame: Frame) -> Result<Frame, DeviceRejection>? {
+        guard frame.group == request.group, frame.command == request.command else { return nil }
+        if frame.operation == 4 {
+            return .failure(DeviceRejection(group: frame.group, command: frame.command, payload: frame.payload))
+        }
+        guard frame.operation == operation, payloadMatches(frame.payload) else { return nil }
+        return .success(frame)
+    }
+}
+
 public struct Frame: Equatable, Sendable {
     public let group: UInt8
     public let command: UInt8
@@ -57,15 +89,11 @@ public struct PairedDevice: Identifiable, Equatable, Sendable {
     public let name: String
     public let status: UInt8
     public var id: DeviceAddress { address }
-    public var isConnected: Bool { status == 1 || status == 3 }
-    public var isThisMac: Bool { status == 3 }
+    public var isConnected: Bool { status & 1 != 0 }
+    public var isThisMac: Bool { status & 2 != 0 }
     public var statusLabel: String {
-        switch status {
-        case 0: "Saved"
-        case 1: "Connected"
-        case 3: "This Mac · Connected"
-        default: "Unknown status (\(status))"
-        }
+        let connection = isConnected ? "Connected" : "Saved"
+        return isThisMac ? "This Mac · \(connection)" : connection
     }
 }
 
@@ -89,8 +117,12 @@ public enum BoseProtocol {
     }
 
     public static func device(_ payload: [UInt8], expected: DeviceAddress) throws -> PairedDevice {
-        guard payload.count >= 9, Array(payload.prefix(6)) == expected.bytes,
-              let name = String(bytes: payload.dropFirst(9), encoding: .utf8) else {
+        guard payload.count >= 9, Array(payload.prefix(6)) == expected.bytes else {
+            throw BoseError.invalid("The headphones returned invalid device details.")
+        }
+        let nameOffset = payload[6] & 4 != 0 ? 10 : 9
+        guard payload.count >= nameOffset,
+              let name = String(bytes: payload.dropFirst(nameOffset), encoding: .utf8) else {
             throw BoseError.invalid("The headphones returned invalid device details.")
         }
         return PairedDevice(address: expected, name: name, status: payload[6])

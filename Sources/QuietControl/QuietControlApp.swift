@@ -10,6 +10,10 @@ struct QuietControlApp: App {
         Window("Quiet Control", id: "main") {
             HeadphoneView(model: model)
                 .task {
+                    if CommandLine.arguments.contains("--inspect-protocol") {
+                        let success = await ProtocolInspection.run()
+                        exit(success ? 0 : 1)
+                    }
                     if model.demo { try? model.loadDemo() }
                     else { model.scan() }
                     NSApplication.shared.activate(ignoringOtherApps: true)
@@ -113,7 +117,7 @@ private struct HeadphoneView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 if !device.isThisMac {
                                     Button(device.isConnected ? "Disconnect" : "Connect") { model.changeConnection(device) }
-                                        .disabled(model.busy || !model.connected || model.demo || ![0, 1].contains(device.status))
+                                        .disabled(model.busy || !model.connected || model.demo)
                                 }
                                 Menu {
                                     Button("Edit local alias…") {

@@ -23,7 +23,7 @@ import Testing
     #expect(addresses.first?.description == "AA:BB:CC:DD:EE:FF")
 }
 
-@Test func deviceDetailsValidateIdentityAndKeepUnknownState() throws {
+@Test func deviceDetailsValidateIdentityAndDecodeFlags() throws {
     let address = try DeviceAddress(bytes: [1, 2, 3, 4, 5, 6])
     let payload = address.bytes + [3, 0, 0] + Array("altay-mbp".utf8)
     let device = try BoseProtocol.device(payload, expected: address)
@@ -35,9 +35,15 @@ import Testing
         try BoseProtocol.device([6, 5, 4, 3, 2, 1, 0, 0, 0], expected: address)
     }
     #expect(throws: BoseError.self) { try BoseProtocol.device(address.bytes + [0, 0, 0, 0xFF], expected: address) }
-    let unknown = try BoseProtocol.device(address.bytes + [9, 0, 0], expected: address)
-    #expect(unknown.statusLabel == "Unknown status (9)")
-    #expect(!unknown.isThisMac)
+    let additionalFlag = try BoseProtocol.device(address.bytes + [9, 0, 0], expected: address)
+    #expect(additionalFlag.isConnected)
+    #expect(!additionalFlag.isThisMac)
+    let localWithFlags = try BoseProtocol.device(address.bytes + [11, 0, 0], expected: address)
+    #expect(localWithFlags.isThisMac)
+    let bosePeer = try BoseProtocol.device(address.bytes + [5, 0x40, 0x20, 1] + Array("Peer".utf8), expected: address)
+    #expect(bosePeer.name == "Peer")
+    #expect(bosePeer.isConnected)
+    #expect(throws: BoseError.self) { try BoseProtocol.device(address.bytes + [4, 0, 0], expected: address) }
 }
 
 @Test func namesValidateByteLengthAndReadback() throws {

@@ -9,11 +9,12 @@ final class BluetoothSession: NSObject, @preconcurrency IOBluetoothRFCOMMChannel
     private var decoder = FrameDecoder()
     private var connection: CheckedContinuation<Void, Error>?
     private var request: CheckedContinuation<Frame, Error>?
-    private var matches: ((Frame) -> Bool)?
+    private var expectation: ResponseExpectation?
     private var timeout: Task<Void, Never>?
     private var writes: [UInt: NSMutableData] = [:]
     private var writeID: UInt = 0
     var onClose: (() -> Void)?
+    var onFrame: ((Frame) -> Void)?
     var isOpen: Bool { channel?.isOpen() == true }
 
     static func pairedHeadphones() -> [IOBluetoothDevice] {
@@ -74,8 +75,7 @@ final class BluetoothSession: NSObject, @preconcurrency IOBluetoothRFCOMMChannel
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 request = continuation
-                matches = { $0.group == frame.group && $0.command == frame.command
-                    && $0.operation == responseOperation && payloadMatches($0.payload) }
+                expectation = ResponseExpectation(request: frame, operation: responseOperation, payloadMatches: payloadMatches)
                 armTimeout("The headphones did not confirm the command. Reconnect and refresh before trying again.", seconds: 6)
                 let data = NSMutableData(bytes: bytes, length: bytes.count)
                 writeID += 1
@@ -101,12 +101,16 @@ final class BluetoothSession: NSObject, @preconcurrency IOBluetoothRFCOMMChannel
         guard incoming == channel, let pointer, length > 0 else { return }
         let bytes = Array(UnsafeBufferPointer(start: pointer.assumingMemoryBound(to: UInt8.self), count: length))
         for frame in decoder.append(bytes) {
-            guard matches?(frame) == true else { continue }
+            onFrame?(frame)
+            guard let result = expectation?.result(for: frame) else { continue }
             timeout?.cancel()
             let pending = request
             request = nil
-            matches = nil
-            pending?.resume(returning: frame)
+            expectation = nil
+            switch result {
+            case .success(let response): pending?.resume(returning: response)
+            case .failure(let error): pending?.resume(throwing: error)
+            }
         }
     }
 
@@ -125,7 +129,7 @@ final class BluetoothSession: NSObject, @preconcurrency IOBluetoothRFCOMMChannel
         let pending = request
         connection = nil
         request = nil
-        matches = nil
+        expectation = nil
         let closing = channel
         channel = nil
         closing?.setDelegate(nil)

@@ -49,6 +49,21 @@ open 'dist/Quiet Control.app' --args --demo
 Quit the running instance before changing launch arguments. Preview aliases are
 kept in memory and headphone commands are disabled.
 
+Read-only protocol inspection, with exactly one Bose headphone connected:
+
+```sh
+'dist/Quiet Control.app/Contents/MacOS/QuietControl' --inspect-protocol
+```
+
+Quit the normal app first. Inspection verifies the QC35 II product ID, reads
+firmware and device-management metadata, and queries extended info for the
+controlling Mac. It prints protocol errors and omits peer addresses and names.
+GET commands and the app's read-only `GetAllFunctions` discovery action are sent;
+no pairing or name changes are attempted.
+
+[Peer-name protocol findings](docs/peer-name-protocol.md) distinguish app-derived
+packet definitions from read-only hardware observations.
+
 ## Protocol sources
 
 - [based-connect command implementation](https://github.com/Denton-L/based-connect/blob/ef66145bf4739ec96c1a6959f63146d12ba87e4c/based.c)

@@ -97,7 +97,7 @@ final class HeadphoneModel: ObservableObject {
         guard !device.isThisMac else { return }
         run {
             let command = device.isConnected ? BoseProtocol.disconnect(device.address) : BoseProtocol.connect(device.address)
-            _ = try await self.session.exchange(command, responseOperation: 7) { $0 == device.address.bytes }
+            _ = try await self.session.exchange(command, responseOperation: 6) { $0 == device.address.bytes }
             try await self.refresh()
             guard let updated = self.devices.first(where: { $0.id == device.id }), updated.isConnected != device.isConnected else {
                 throw BoseError.invalid("The request was accepted, but the connection has not changed. Check the other device and refresh.")
