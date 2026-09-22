@@ -3,7 +3,7 @@
   "extends": [
     "github>altaywtf/.github:renovate-config"
   ],
-  "platformAutomerge": false,
+  "platformAutomerge": true,
   "automergeType": "pr",
   "ignoreTests": false
 }
