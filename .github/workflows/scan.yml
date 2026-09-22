@@ -13,4 +13,4 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   scan:
-    uses: uinaf/.github/.github/workflows/scan.yml@ddd5682967e3d5725bd2a551ce951c0bc055efba # main
+    uses: uinaf/.github/.github/workflows/scan.yml@273d0888178ba4795605c440bef144d8882331fc # v1.0.0
