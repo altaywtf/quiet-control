@@ -19,6 +19,9 @@ import Testing
     #expect(throws: BoseError.self) { try BoseProtocol.addresses([]) }
     #expect(throws: BoseError.self) { try BoseProtocol.addresses([1, 2, 3]) }
     #expect(throws: BoseError.self) { try BoseProtocol.addresses([1] + Array(repeating: 0, count: 12)) }
+    let full = (1...9).flatMap { index in [UInt8](repeating: UInt8(index), count: 6) }
+    #expect(try BoseProtocol.addresses([8] + full.prefix(48)).count == 8)
+    #expect(throws: BoseError.self) { try BoseProtocol.addresses([9] + full) }
     let addresses = try BoseProtocol.addresses([3, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF])
     #expect(addresses.first?.description == "AA:BB:CC:DD:EE:FF")
 }

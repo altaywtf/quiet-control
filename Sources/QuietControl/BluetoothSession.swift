@@ -36,10 +36,13 @@ final class BluetoothSession: NSObject, @preconcurrency IOBluetoothRFCOMMChannel
 
     func open(_ target: IOBluetoothDevice) async throws {
         close()
+        guard target.isConnected() else {
+            throw BoseError.invalid("\(target.nameOrAddress ?? "The headphones") is not connected. Turn it on and connect it in System Settings → Bluetooth.")
+        }
         device = target
         try await withCheckedThrowingContinuation { continuation in
             connection = continuation
-            armTimeout("Bluetooth connection timed out. Connect the headphones in System Settings, then retry.", seconds: 15)
+            armTimeout("The headphones did not open their control channel. Reconnect them in System Settings → Bluetooth and read again.", seconds: 15)
             let status = target.performSDPQuery(self)
             if status != kIOReturnSuccess { fail(ioError("Discovering headphone services", status)) }
         }
@@ -157,6 +160,6 @@ final class BluetoothSession: NSObject, @preconcurrency IOBluetoothRFCOMMChannel
     }
 
     private func ioError(_ action: String, _ status: IOReturn) -> Error {
-        BoseError.invalid("\(action) failed (\(status)). Check Bluetooth permission in System Settings → Privacy & Security → Bluetooth.")
+        BoseError.invalid("\(action) failed (IOReturn \(String(format: "0x%08X", UInt32(bitPattern: status)))).")
     }
 }

@@ -63,7 +63,7 @@ private struct HeadphoneView: View {
                 }
                 Spacer()
                 if let battery = model.battery {
-                    Label("\(battery)%", systemImage: "battery.75percent")
+                    Label("\(battery)%", systemImage: batterySymbol(battery))
                         .accessibilityLabel("Battery \(battery) percent")
                 }
                 Button("Rename…") { draft = model.name; editor = .headphones }
@@ -73,17 +73,16 @@ private struct HeadphoneView: View {
             if !model.demo {
                 HStack {
                     Picker("Headphones", selection: $model.selectedID) {
-                        if model.headphones.isEmpty { Text("No QC35 found").tag("") }
-                        ForEach(model.headphones, id: \.addressString) { headphone in
-                            Text(headphone.nameOrAddress ?? "Headphones").tag(headphone.addressString ?? "")
+                        if model.choices.isEmpty { Text("No QC35 II found").tag("") }
+                        ForEach(model.choices) { choice in
+                            Text(model.choiceLabels[choice.id] ?? choice.address).tag(choice.id)
                         }
                     }
                     .disabled(model.busy)
                     Button("Scan") { model.scan() }.disabled(model.busy)
                     Button(model.connected ? "Refresh" : "Read headphones") { model.read() }
-                        .buttonStyle(.borderedProminent)
+                        .keyboardShortcut(.defaultAction)
                         .disabled(model.busy || model.selectedID.isEmpty)
-                        .keyboardShortcut("r")
                 }
             }
 
@@ -91,14 +90,13 @@ private struct HeadphoneView: View {
             HStack {
                 Text("Saved devices").font(.headline)
                 Spacer()
-                Text("\(model.devices.count) of 8").foregroundStyle(.secondary)
+                Text("\(model.devices.count) of \(BoseProtocol.maxSavedDevices)").foregroundStyle(.secondary)
             }
 
             if model.devices.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "headphones").font(.largeTitle).foregroundStyle(.secondary)
-                    Text(model.busy ? "Reading saved devices…" : "Your pairing list will appear here.")
-                    Text("Read the headphones to see the phones and computers they remember.")
+                    Text(model.busy ? "Reading saved devices…" : "Read the headphones to list the devices they remember.")
                         .foregroundStyle(.secondary).multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -147,8 +145,6 @@ private struct HeadphoneView: View {
                     if model.busy { ProgressView().controlSize(.small) }
                     Text(model.message).foregroundStyle(.secondary)
                 }
-                Text("Aliases are saved on this Mac. They don’t change device names announced by the headphones.")
-                    .foregroundStyle(.secondary)
             }
             .font(.callout)
         }
@@ -179,13 +175,22 @@ private struct HeadphoneView: View {
         }
     }
 
+    private func batterySymbol(_ level: Int) -> String {
+        switch level {
+        case ..<13: "battery.0percent"
+        case ..<38: "battery.25percent"
+        case ..<63: "battery.50percent"
+        case ..<88: "battery.75percent"
+        default: "battery.100percent"
+        }
+    }
     private func editorTitle(_ editor: Editor) -> String {
         switch editor { case .headphones: "Rename headphones"; case .alias: "Local device alias" }
     }
     private func editorHelp(_ editor: Editor) -> String {
         switch editor {
-        case .headphones: "Changes the name stored on the headphones. Up to 31 UTF-8 bytes."
-        case .alias: "Shown only in Quiet Control on this Mac. Leave empty to use the reported name."
+        case .headphones: "Stored on the headphones and shown to every paired device. Up to \(BoseProtocol.maxNameBytes) UTF-8 bytes."
+        case .alias: "Shown only in Quiet Control on this Mac. The headphones keep the reported name. Leave empty to use it."
         }
     }
     private func validDraft(_ editor: Editor) -> Bool {

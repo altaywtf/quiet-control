@@ -1,11 +1,39 @@
+import CoreBluetooth
 import Foundation
 import IOBluetooth
 import QuietCore
 import SwiftUI
 
+struct HeadphoneChoice: Identifiable, Equatable {
+    let id: String
+    let name: String
+    let isConnected: Bool
+    var address: String { id.replacingOccurrences(of: "-", with: ":").uppercased() }
+
+    static func labels(_ choices: [HeadphoneChoice]) -> [String: String] {
+        let nameCounts = Dictionary(grouping: choices, by: \.name).mapValues(\.count)
+        return Dictionary(choices.map { choice in
+            var label = choice.name.isEmpty ? choice.address : choice.name
+            if !choice.name.isEmpty, nameCounts[choice.name, default: 0] > 1 { label += " (\(choice.address))" }
+            if !choice.isConnected { label += " — not connected" }
+            return (choice.id, label)
+        }, uniquingKeysWith: { first, _ in first })
+    }
+
+    /// Keeps the current selection unless it is gone or disconnected while another headset is connected.
+    static func selection(keeping current: String, in choices: [HeadphoneChoice]) -> String {
+        if let kept = choices.first(where: { $0.id == current }),
+           kept.isConnected || !choices.contains(where: \.isConnected) {
+            return current
+        }
+        return (choices.first(where: \.isConnected) ?? choices.first)?.id ?? ""
+    }
+}
+
 @MainActor
 final class HeadphoneModel: ObservableObject {
-    @Published var headphones: [IOBluetoothDevice] = []
+    @Published private(set) var choices: [HeadphoneChoice] = []
+    @Published private(set) var choiceLabels: [String: String] = [:]
     @Published var selectedID = "" {
         didSet {
             guard selectedID != oldValue else { return }
@@ -26,6 +54,7 @@ final class HeadphoneModel: ObservableObject {
     @Published var message = "Connect your QC35 II to this Mac, then choose Read headphones."
     @Published var error: String?
     @Published private var aliases: [String: String]
+    private var headphones: [String: IOBluetoothDevice] = [:]
     private let session = BluetoothSession()
     private let defaults: UserDefaults
     let demo: Bool
@@ -43,10 +72,19 @@ final class HeadphoneModel: ObservableObject {
 
     func scan() {
         guard !demo else { return }
-        headphones = BluetoothSession.pairedHeadphones()
-        if !headphones.contains(where: { $0.addressString == selectedID }) {
-            selectedID = headphones.first?.addressString ?? ""
+        if [.denied, .restricted].contains(CBManager.authorization) {
+            error = "Bluetooth access is off for Quiet Control. Allow it in System Settings → Privacy & Security → Bluetooth."
         }
+        let devices = BluetoothSession.pairedHeadphones()
+        headphones = Dictionary(devices.compactMap { device in
+            device.addressString.map { ($0, device) }
+        }, uniquingKeysWith: { first, _ in first })
+        choices = devices.compactMap { device in
+            guard let id = device.addressString else { return nil }
+            return HeadphoneChoice(id: id, name: device.name ?? "", isConnected: device.isConnected())
+        }
+        choiceLabels = HeadphoneChoice.labels(choices)
+        selectedID = HeadphoneChoice.selection(keeping: selectedID, in: choices)
     }
 
     func read() {
@@ -54,8 +92,8 @@ final class HeadphoneModel: ObservableObject {
             self.devices = []
             self.battery = nil
             self.connected = false
-            guard let target = self.headphones.first(where: { $0.addressString == self.selectedID }) else {
-                throw BoseError.invalid("No QC35 found. Pair it in System Settings → Bluetooth, then scan again.")
+            guard let target = self.headphones[self.selectedID] else {
+                throw BoseError.invalid("No QC35 II found. Pair it in System Settings → Bluetooth, then scan again.")
             }
             self.message = "Reading headphones…"
             try await self.session.open(target)
@@ -137,6 +175,7 @@ final class HeadphoneModel: ObservableObject {
         Task {
             defer { busy = false }
             do { try await action() }
+            catch is CancellationError {}
             catch {
                 self.error = error.localizedDescription
                 connected = session.isOpen

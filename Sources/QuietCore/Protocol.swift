@@ -98,13 +98,15 @@ public struct PairedDevice: Identifiable, Equatable, Sendable {
 }
 
 public enum BoseProtocol {
+    public static let maxSavedDevices = 8
+    public static let maxNameBytes = 31
     public static let handshake = Frame(0, 1, 1)
     public static let list = Frame(4, 4, 1)
     public static let battery = Frame(2, 2, 1)
     public static let name = Frame(1, 2, 1)
 
     public static func addresses(_ payload: [UInt8]) throws -> [DeviceAddress] {
-        guard !payload.isEmpty, (payload.count - 1).isMultiple(of: 6), payload.count <= 49 else {
+        guard !payload.isEmpty, (payload.count - 1).isMultiple(of: 6), payload.count <= 1 + maxSavedDevices * 6 else {
             throw BoseError.invalid("The headphones returned an invalid pairing list.")
         }
         let addresses = try stride(from: 1, to: payload.count, by: 6).map {
@@ -137,8 +139,8 @@ public enum BoseProtocol {
 
     public static func rename(_ name: String) throws -> Frame {
         let bytes = Array(name.utf8)
-        guard (1...31).contains(bytes.count), !name.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else {
-            throw BoseError.invalid("Use a name between 1 and 31 UTF-8 bytes, without control characters.")
+        guard (1...maxNameBytes).contains(bytes.count), !name.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else {
+            throw BoseError.invalid("Use 1–\(maxNameBytes) UTF-8 bytes without control characters.")
         }
         return Frame(1, 2, 2, bytes)
     }

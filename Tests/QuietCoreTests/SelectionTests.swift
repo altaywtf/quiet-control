@@ -34,3 +34,23 @@ import Testing
     model.setAlias("", for: device)
     #expect(model.displayName(device) == device.name)
 }
+
+@Test func scanPrefersAConnectedHeadset() {
+    let off = HeadphoneChoice(id: "28-11-a5-38-cc-9c", name: "QC35 II", isConnected: false)
+    let on = HeadphoneChoice(id: "60-ab-d2-43-a3-17", name: "QC35 II", isConnected: true)
+    #expect(HeadphoneChoice.selection(keeping: "", in: [off, on]) == on.id)
+    #expect(HeadphoneChoice.selection(keeping: off.id, in: [off, on]) == on.id)
+    #expect(HeadphoneChoice.selection(keeping: off.id, in: [off]) == off.id)
+    #expect(HeadphoneChoice.selection(keeping: "gone", in: []) == "")
+}
+
+@Test func duplicateHeadsetNamesShowTheirAddress() {
+    let labels = HeadphoneChoice.labels([
+        HeadphoneChoice(id: "28-11-a5-38-cc-9c", name: "QC35 II", isConnected: false),
+        HeadphoneChoice(id: "60-ab-d2-43-a3-17", name: "QC35 II", isConnected: true),
+        HeadphoneChoice(id: "aa-bb-cc-dd-ee-ff", name: "Office", isConnected: true)
+    ])
+    #expect(labels["28-11-a5-38-cc-9c"] == "QC35 II (28:11:A5:38:CC:9C) — not connected")
+    #expect(labels["60-ab-d2-43-a3-17"] == "QC35 II (60:AB:D2:43:A3:17)")
+    #expect(labels["aa-bb-cc-dd-ee-ff"] == "Office")
+}
