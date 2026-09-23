@@ -21,10 +21,17 @@ final class BluetoothSession: NSObject, @preconcurrency IOBluetoothRFCOMMChannel
         let devices = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] ?? []
         return devices.filter {
             let name = ($0.name ?? "").lowercased()
-            let services = $0.services as? [IOBluetoothSDPServiceRecord] ?? []
             return name.contains("bose") || name.contains("quietcomfort") || name.contains("qc35")
-                || services.contains { $0.getServiceName() == "SPP Dev" }
+                || controlService($0) != nil
         }
+    }
+
+    // Some QC35 II units, including the gaming edition, omit the "SPP Dev" name from the serial-port record.
+    static func controlService(_ device: IOBluetoothDevice) -> IOBluetoothSDPServiceRecord? {
+        let services = device.services as? [IOBluetoothSDPServiceRecord] ?? []
+        let serialPort = BluetoothSDPUUID16(kBluetoothSDPUUID16ServiceClassSerialPort.rawValue)
+        return services.first { $0.getServiceName() == "SPP Dev" }
+            ?? services.first { $0.matchesUUID16(serialPort) }
     }
 
     func open(_ target: IOBluetoothDevice) async throws {
@@ -42,8 +49,7 @@ final class BluetoothSession: NSObject, @preconcurrency IOBluetoothRFCOMMChannel
     @objc func sdpQueryComplete(_ queriedDevice: IOBluetoothDevice, status: IOReturn) {
         guard queriedDevice == device, connection != nil else { return }
         guard status == kIOReturnSuccess else { fail(ioError("Discovering headphone services", status)); return }
-        let services = queriedDevice.services as? [IOBluetoothSDPServiceRecord] ?? []
-        guard let service = services.first(where: { $0.getServiceName() == "SPP Dev" }) else {
+        guard let service = Self.controlService(queriedDevice) else {
             fail(BoseError.invalid("This device does not expose the QC35 control service (SPP Dev)."))
             return
         }
