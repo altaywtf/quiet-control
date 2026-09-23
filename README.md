@@ -13,8 +13,8 @@ The controlling Mac is protected from disconnect and forget actions.
 **Aliases stay on this Mac.** They do not change names stored or announced by
 the headphones. See the [peer-name investigation](docs/peer-name-protocol.md).
 
-Hardware reads are tested. Connect, disconnect, forget, and headphone rename
-still need hardware verification. Refresh after an uncertain result before
+Reads, headphone rename, and forget are tested on hardware. Connect and
+disconnect still need hardware verification. Refresh after an uncertain result before
 sending another command.
 
 ## Build and run
