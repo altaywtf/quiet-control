@@ -18,3 +18,5 @@ jobs:
         with:
           persist-credentials: false
       - run: sh scripts/verify.sh
+      - if: ${{ !cancelled() }}
+        uses: uinaf/.github/.github/actions/scan@7bc3f9ea25b5494f4026dfdb64fb866a520afcd0 # v3.0.0
