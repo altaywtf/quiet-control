@@ -2,6 +2,8 @@ name: Scan
 
 on:
   pull_request:
+  push:
+    branches: [main]
   schedule:
     - cron: "41 6 * * 1"
   workflow_dispatch:
@@ -9,11 +11,12 @@ on:
 permissions: {}
 
 concurrency:
-  group: scan-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: scan-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   scan:
+    if: ${{ github.event_name != 'push' || github.event.head_commit.committer.username != 'web-flow' }}
     permissions:
       contents: read
-    uses: uinaf/.github/.github/workflows/scan.yml@ce25bc56a1a5c182e8bef402b3eceaca331608a1 # v1.0.1
+    uses: uinaf/.github/.github/workflows/scan.yml@5cb5234c5395e37a1c876619bbe5d7cb8938bda3 # v2.0.0
