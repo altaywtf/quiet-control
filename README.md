@@ -58,8 +58,8 @@ See the [findings and packet definitions](docs/peer-name-protocol.md).
   (GPL-3.0): wire-protocol reference. Quiet Control implements the messages independently.
 - [bose-macos-utility](https://github.com/lukasz-zet/bose-macos-utility/blob/a4c919f0cfce739f7408d1def190171218df0a6f/bose-macos-utility/bose-macos-utility/AppDelegate.swift)
   (MIT): macOS RFCOMM service discovery.
-- [Research sources](docs/peer-name-protocol.md#sources): iclemens/bose,
-  aaronsb/bosectl, and Bose Connect packet definitions. No APK or decompiled
-  source is included.
+- Research sources: [iclemens/bose](https://github.com/iclemens/bose/blob/fed1311fc84aa53e59053abfc001e5fedade2ef7/wireshark/bose.lua),
+  [aaronsb/bosectl](https://github.com/aaronsb/bosectl/blob/c46a1f607ee717b958dd9f880f7dbb2344b2f543/NOTES.md),
+  and Bose Connect packet definitions. No APK or decompiled source is included.
 
 [MIT licensed](LICENSE). Unaffiliated with Bose.
