@@ -14,8 +14,8 @@ The controlling Mac is protected from disconnect and forget actions.
 the headphones. See [Protocol](#protocol).
 
 Reads, headphone rename, and forget are tested on hardware. Connect and
-disconnect still need hardware verification. Refresh after an uncertain result before
-sending another command.
+disconnect still need hardware verification. Refresh after an uncertain result
+before sending another command.
 
 ## Build and run
 
@@ -44,13 +44,12 @@ open 'dist/Quiet Control.app' --args --demo
 ```
 
 Demo mode uses sample devices, keeps aliases in memory, and disables headphone
-commands. The screenshots show this mode.
+commands.
 
 ![Local alias editor](docs/screenshots/local-alias.png)
 
 Protocol inspection requires exactly one Bose headphone connected. It sends
 read-only queries and omits device names, addresses, and serial numbers.
-See [Protocol](#protocol) for packet definitions.
 
 ## Protocol
 
