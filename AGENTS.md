@@ -2,7 +2,7 @@
 
 Native macOS QC35 II management prototype in Swift 6, SwiftUI, and IOBluetooth.
 Protocol parsing lives in `QuietCore`; UI and transport live in `QuietControl`.
-[README.md](README.md) covers the build, protocol sources, and hardware status.
+[README.md](README.md) covers the build, protocol findings, and hardware status.
 
 ## Verify
 
@@ -20,8 +20,10 @@ only the app instance you launched.
 
 Read commands are safe to test against connected QC35 II headphones. Confirm the
 target before changing a pairing or the headphone name; other personal pairings
-are real devices, not test fixtures. A mutation counts as hardware verified once
-its action and read-back have both run on the headphones.
+are real devices, not test fixtures. Undocumented writes need separate
+authorization; never sweep opcodes or probe firmware or debug writes. A
+mutation counts as hardware verified once its action and read-back have both
+run on the headphones.
 
 Committed artifacts omit device addresses and names. Local aliases stay separate
 from names stored on the headset.
