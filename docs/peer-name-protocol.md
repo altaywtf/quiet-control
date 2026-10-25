@@ -5,10 +5,6 @@ Connect 25.2's device-management packet factory. A single authorized SET_GET
 probe of peer Info on firmware 4.8.1 returned error 5 (unsupported operator).
 This rules out that tested path, not every possible undocumented setter.
 
-Sources, hardware observations, and the authorized write probe live in the
-[Quiet Control peer-name research](https://app.notion.com/p/3e5e75710b5281999cc8c6a31e5a9e5c)
-Notion section.
-
 ## App implementation findings
 
 | Function | Request | Finding |
