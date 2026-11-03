@@ -27,3 +27,9 @@ run on the headphones.
 
 Committed artifacts omit device addresses and names. Local aliases stay separate
 from names stored on the headset.
+
+## Repository skills
+
+- [Swift concurrency](.agents/skills/swift-concurrency/SKILL.md): Bluetooth callbacks, actor isolation, Sendable, callback-to-async.
+- [SwiftUI](.agents/skills/swiftui-expert-skill/SKILL.md): views, state, layout, accessibility.
+- [Swift testing](.agents/skills/swift-testing-expert/SKILL.md): Swift Testing structure and async test failures.
